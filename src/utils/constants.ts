@@ -1,4 +1,6 @@
-export const BASE_URL = "http://localhost:8080/api";
+// export const BASE_URL = "http://localhost:8080/api";
+export const BASE_URL = "https://patients-api-zyvs.onrender.com/api";
+
 export const JWT = "jwt";
 export const CNP = "cnp";
 export const EMAIL = "email";
