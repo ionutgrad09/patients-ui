@@ -14,15 +14,20 @@ interface Props {
     observerEmail: string;
 }
 
+const getDailyStatus = async (id: string, date: number, observerEmail: string) => {
+    return getReq(API.getDailyStatusForObserver(id, date, observerEmail))
+}
+
 const SimpleDailyStatus: FC<Props> = ({id, observerEmail}) => {
     const [patient, setPatient] = useState<Patient | null>(null)
     const [dailyStatus, setDailyStatus] = useState<DailyStatus | null>(null)
     const [loading, setLoading] = useState<boolean>(false)
     const [loadingDailyStatus, setLoadingDailyStatus] = useState<boolean>(false)
 
+
     useEffect(() => {
         if (id) {
-            Promise.all([getReq(API.getPatientForObserver(id, observerEmail)), getDailyStatus(id, dayjs().startOf("day").unix() * 1000)])
+            Promise.all([getReq(API.getPatientForObserver(id, observerEmail)), getDailyStatus(id, dayjs().startOf("day").unix() * 1000, observerEmail)])
                 .then(([patientResponse, dailyStatusResponse]) => {
                     setPatient(patientResponse.data)
                     setDailyStatus(dailyStatusResponse.data)
@@ -30,15 +35,11 @@ const SimpleDailyStatus: FC<Props> = ({id, observerEmail}) => {
                 setLoading(false)
             });
         }
-    }, [id])
-
-    const getDailyStatus = async (id: string, date: number) => {
-        return getReq(API.getDailyStatusForObserver(id, date, observerEmail))
-    }
+    }, [id, observerEmail])
 
     const handleDateChanged = (timestamp: number) => {
         setLoadingDailyStatus(true)
-        getDailyStatus(id!, timestamp)
+        getDailyStatus(id!, timestamp, observerEmail)
             .then(response => {
                 setDailyStatus(response.data);
             }).catch(handleError).finally(() => {

@@ -1,4 +1,4 @@
-import React, {FC, useContext, useEffect, useState} from 'react'
+import React, {FC, useCallback, useContext, useEffect, useState} from 'react'
 import {Role, Unit, User} from "../../utils/types";
 import {
     Box, Button,
@@ -15,7 +15,7 @@ import {deleteReq, getReq, postReq} from "../../utils/axios";
 import {API} from "../../utils/constants";
 import {AuthContext} from "../../contexts/AuthProvider";
 import AddUserModal from "./components/AddUserModal";
-import {handleError, handleInfo, handleSuccess} from "../../utils/notifications";
+import {handleError, handleInfo} from "../../utils/notifications";
 
 
 export type ModifyUserType = User & { password?: string };
@@ -42,27 +42,7 @@ const Users: FC = () => {
 
     const {user} = useContext(AuthContext);
 
-    useEffect(() => {
-        fetchData();
-    }, [user])
-
-
-    useEffect(() => {
-        const isEditMode = !!users.filter(u => u.username === userToModify.username).length;
-
-        setIsEdit(isEditMode)
-
-    }, [userToModify, users])
-
-    const fetchData = () => {
-        getUsers();
-
-        if (user?.role === Role.SUPER_ADMIN) {
-            getUnits();
-        }
-    }
-
-    const getUsers = () => {
+    const getUsers = useCallback(() => {
         if (!user) {
             return
         }
@@ -72,7 +52,28 @@ const Users: FC = () => {
         getReq(API.getAllUsers(unitId)).then((response) => {
             setUsers(response.data)
         }).catch(handleError)
-    };
+    }, [user])
+
+    const fetchData = useCallback(() => {
+        getUsers();
+
+        if (user?.role === Role.SUPER_ADMIN) {
+            getUnits();
+        }
+    }, [getUsers, user?.role])
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData, user])
+
+
+    useEffect(() => {
+        const isEditMode = !!users.filter(u => u.username === userToModify.username).length;
+
+        setIsEdit(isEditMode)
+
+    }, [userToModify, users])
+
 
     const getUnits = () => {
         getReq(API.getAllUnits).then((response) => {
@@ -184,7 +185,8 @@ const Users: FC = () => {
                                 <TableCell align="center">{row.firstName + " " + row.lastName}</TableCell>
                                 <TableCell align="center">{row.phoneNumber || "-"}</TableCell>
                                 <TableCell align="center">
-                                    <Chip variant="outlined" label={row.role} color={row.role === Role.MODERATOR ? "primary" : "warning"}/>
+                                    <Chip variant="outlined" label={row.role}
+                                          color={row.role === Role.MODERATOR ? "primary" : "warning"}/>
                                 </TableCell>
                                 {user?.role === Role.SUPER_ADMIN && <TableCell>{row.unitId}</TableCell>}
                                 <TableCell align="center">

@@ -1,5 +1,5 @@
 import React, {FC, useContext, useEffect, useState} from 'react'
-import {Patient, Role} from "../../utils/types";
+import {Patient, Role, User} from "../../utils/types";
 import {
     Avatar,
     Box,
@@ -21,6 +21,14 @@ import {timestampDateToString} from "../../utils/time";
 import {handleError, handleInfo} from "../../utils/notifications";
 
 
+const fetchData = (setPatients: (data: any) => void, user: User | null) => {
+    if (user) {
+        getReq(API.getAllPatients(user.unitId || -1)).then((response) => {
+            setPatients(response.data)
+        }).catch(handleError)
+    }
+}
+
 const Patients: FC = () => {
     const [patients, setPatients] = useState<Patient[]>([]);
     const {user} = useContext(AuthContext);
@@ -28,22 +36,14 @@ const Patients: FC = () => {
 
     useEffect(() => {
         if (user) {
-            fetchData()
+            fetchData(setPatients, user)
         }
     }, [user])
-
-    const fetchData = () => {
-        if (user) {
-            getReq(API.getAllPatients(user.unitId || -1)).then((response) => {
-                setPatients(response.data)
-            }).catch(handleError)
-        }
-    }
 
     const handlePatientDelete = (patientId: string) => {
         deleteReq(API.deletePatient(patientId)).then(() => {
             handleInfo(`Pacientul cu CNP: ${patientId} a fost sters`)
-            fetchData();
+            fetchData(setPatients, user)
         }).catch(handleError)
     }
 

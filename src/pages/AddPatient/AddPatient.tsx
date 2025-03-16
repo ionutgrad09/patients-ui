@@ -8,7 +8,7 @@ import {Patient, Role, Unit} from "../../utils/types";
 import {getReq, postReq} from "../../utils/axios";
 import {API} from "../../utils/constants";
 import {AuthContext} from "../../contexts/AuthProvider";
-import {handleError, handleInfo, handleSuccess} from "../../utils/notifications";
+import {handleError, handleInfo} from "../../utils/notifications";
 
 
 export type AddPatientType = Omit<Patient, "id">;
