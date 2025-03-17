@@ -3,8 +3,8 @@ import PersonalInformationForm from "./components/AddPeronalInformation";
 import ContactPersons from "./components/AddContactPersons";
 import {useNavigate, useParams} from "react-router-dom";
 import {ROUTES} from "../../utils/routes";
-import {Box, Button} from "@mui/material";
-import {Patient, Role, Unit} from "../../utils/types";
+import {Box, Button, CircularProgress} from "@mui/material";
+import {ContactPerson, Patient, Role, Unit} from "../../utils/types";
 import {getReq, postReq} from "../../utils/axios";
 import {API} from "../../utils/constants";
 import {AuthContext} from "../../contexts/AuthProvider";
@@ -36,6 +36,8 @@ const AddPatient: FC = () => {
     const [units, setUnits] = useState<Unit[]>([])
     const [validationPersonalInformationErrors, setValidationPersonalInformationErrors] = useState<{ [key: string]: string }>({});
     const [validationContactPersonsErrors, setValidationContactPersonsErrors] = useState<{ [key: string]: string }>({});
+    const [loading, setLoading] = useState<boolean>(false);
+    const [isDirty, setIsDirty] = useState<boolean>(false);
 
     useEffect(() => {
         if (user?.role === Role.SUPER_ADMIN) {
@@ -48,9 +50,11 @@ const AddPatient: FC = () => {
 
     useEffect(() => {
         if (id) {
+            setLoading(true)
             getReq(API.getPatient(id))
                 .then((response) => {
                     setPatient(response.data)
+                    setLoading(false)
                 }).catch(handleError)
         }
 
@@ -61,8 +65,18 @@ const AddPatient: FC = () => {
     }, [id])
 
     const handlePatientChange = (newPatient: AddPatientType) => {
+        setIsDirty(true);
         setPatient(newPatient);
     };
+
+    const handleContactPersonsChange = (newContactPersons: ContactPerson[]) =>
+    {
+        setIsDirty(true)
+        setPatient((current) => ({
+            ...current,
+            contactPersons: newContactPersons
+        }))
+    }
 
     const handleOnSave = () => {
         const validPersonalInformation = validatePersonalInformation();
@@ -79,9 +93,11 @@ const AddPatient: FC = () => {
                 }
             }
 
+            setLoading(true)
             postReq(API.patient, patientToAdd).then((response) => {
                 navigate(ROUTES.Patients)
 
+                setLoading(false)
                 if (id) {
                     handleInfo("Datele pacientului au fost modificate")
                 } else {
@@ -142,7 +158,7 @@ const AddPatient: FC = () => {
     return (
         <Box>
             <h1>{id ? "Editeaza date pacient" : "Adaugare pacient"}</h1>
-
+            {loading && <CircularProgress size={75} style={{position: "absolute", top: "45%", left: "50%"}}/>}
             <Box style={{
                 display: "flex",
                 alignItems: "start",
@@ -163,14 +179,11 @@ const AddPatient: FC = () => {
                 />
                 <ContactPersons
                     validationErrors={validationContactPersonsErrors}
-                    handleContactPersonsChanged={(newContactPersons) => setPatient((current) => ({
-                        ...current,
-                        contactPersons: newContactPersons
-                    }))}
+                    handleContactPersonsChanged={handleContactPersonsChange}
                     contactPersons={patient.contactPersons || []}
                 />
                 <Box style={{width: "100%", display: "flex", justifyContent: "end"}}>
-                    <Button variant="contained" onClick={handleOnSave}>Salveaza</Button>
+                    <Button disabled={!isDirty || loading} variant="contained" onClick={handleOnSave}>Salveaza</Button>
                 </Box>
             </Box>
         </Box>

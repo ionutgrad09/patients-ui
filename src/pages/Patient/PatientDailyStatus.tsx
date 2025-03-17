@@ -2,7 +2,7 @@ import React, {FC, useContext, useEffect, useState} from 'react'
 import PersonalDetails from "./components/PersonalDetails";
 import {useParams} from "react-router-dom";
 import {DailyStatus, Patient} from "../../utils/types";
-import {Box, Button} from "@mui/material";
+import {Box, Button, CircularProgress, Skeleton} from "@mui/material";
 import AdvancedPersonalDetails from "./components/AdvancedPersonalDetails";
 import DailyStatusDetails, {ValidationErrors} from "./components/DailyStatusDetails";
 import {getReq, postReq} from "../../utils/axios";
@@ -18,7 +18,6 @@ const PatientDailyStatus: FC = () => {
     const [patient, setPatient] = useState<Patient | null>(null)
     const [dailyStatus, setDailyStatus] = useState<DailyStatus | null>(null)
     const [loading, setLoading] = useState<boolean>(false)
-    const [loadingDailyStatus, setLoadingDailyStatus] = useState<boolean>(false)
     const [validationErrors, setValidationErrors] = useState<ValidationErrors>({});
 
     const {user} = useContext(AuthContext);
@@ -53,25 +52,25 @@ const PatientDailyStatus: FC = () => {
     }
 
     const handleDateChanged = (timestamp: number) => {
-        setLoadingDailyStatus(true)
+        setLoading(true)
         getDailyStatus(id!, timestamp)
             .then(response => {
                 setDailyStatus(response.data);
             }).catch(handleError).finally(() => {
-            setLoadingDailyStatus(false)
+            setLoading(false)
         })
     }
 
     const handleUpdateDailyStatus = () => {
         if (validate()) {
-            setLoadingDailyStatus(true);
+            setLoading(true);
             postReq(API.updateDailyStatus, dailyStatus!)
                 .then((response) => {
                     setDailyStatus(response.data)
                     setDirtyForm(false)
                     handleInfo("Fisa pacientului a fost salvata")
                 }).catch(handleError).finally(() => {
-                    setLoadingDailyStatus(false)
+                    setLoading(false)
                 }
             )
         }
@@ -102,13 +101,11 @@ const PatientDailyStatus: FC = () => {
         return <h1>Pacientul nu a putut fi gasit</h1>
     }
 
-    if (loading || !patient || !dailyStatus) {
-        return null;
-    }
-
 
     return (
         <Box style={{display: "flex", flexDirection: "column"}}>
+            {loading &&
+                <CircularProgress size={90} style={{zIndex: "100", position: "absolute", top: "40%", left: "50%"}}/>}
             <Box style={{display: "flex", justifyContent: "space-between", alignItems: "center"}}>
                 <h1>Pacient</h1>
                 <Box>
@@ -120,20 +117,25 @@ const PatientDailyStatus: FC = () => {
                     </Button>
                 </Box>
             </Box>
-            <Box style={{display: "flex", flexDirection: "row", gap: "25px"}}>
-                <Box style={{display: "flex", flexDirection: "column", width: "50%", gap: "20px"}}>
-                    <PersonalDetails patient={patient}/>
-                    <AdvancedPersonalDetails patient={patient}/>
-                </Box>
-                <DailyStatusDetails
-                    dailyStatus={dailyStatus}
-                    readonly={readonly}
-                    validationErrors={validationErrors}
-                    handleDateChanged={handleDateChanged}
-                    updateDailyStatus={dailyStatusChange}
-                    loading={loadingDailyStatus}
-                />
-            </Box>
+            {!patient || !dailyStatus ? <Box>
+                    <Skeleton animation="wave" height={150}/>
+                    <Skeleton animation="wave" height={150}/>
+                    <Skeleton animation="wave" height={150}/>
+                    <Skeleton animation="wave" height={150}/>
+                </Box> :
+                <Box style={{display: "flex", flexDirection: "row", gap: "25px"}}>
+                    <Box style={{display: "flex", flexDirection: "column", width: "50%", gap: "20px"}}>
+                        <PersonalDetails patient={patient}/>
+                        <AdvancedPersonalDetails patient={patient}/>
+                    </Box>
+                    <DailyStatusDetails
+                        dailyStatus={dailyStatus}
+                        readonly={readonly}
+                        validationErrors={validationErrors}
+                        handleDateChanged={handleDateChanged}
+                        updateDailyStatus={dailyStatusChange}
+                    />
+                </Box>}
         </Box>
     )
 }

@@ -1,9 +1,9 @@
-import React, {FC, useContext, useEffect, useState} from 'react'
-import {Patient, Role, User} from "../../utils/types";
+import React, {FC, useCallback, useContext, useEffect, useState} from 'react'
+import {Patient, Role} from "../../utils/types";
 import {
     Avatar,
     Box,
-    Button,
+    Button, CircularProgress,
     Paper,
     Table,
     TableBody,
@@ -21,35 +21,44 @@ import {timestampDateToString} from "../../utils/time";
 import {handleError, handleInfo} from "../../utils/notifications";
 
 
-const fetchData = (setPatients: (data: any) => void, user: User | null) => {
-    if (user) {
-        getReq(API.getAllPatients(user.unitId || -1)).then((response) => {
-            setPatients(response.data)
-        }).catch(handleError)
-    }
-}
+
 
 const Patients: FC = () => {
     const [patients, setPatients] = useState<Patient[]>([]);
+    const [loading, setLoading] = useState<boolean>(false);
+    
     const {user} = useContext(AuthContext);
     const navigate = useNavigate();
 
-    useEffect(() => {
+    const fetchData = useCallback(() => {
         if (user) {
-            fetchData(setPatients, user)
+            getReq(API.getAllPatients(user.unitId || -1)).then((response) => {
+                setPatients(response.data)
+                setLoading(false);
+            }).catch(handleError)
         }
     }, [user])
+    
+    useEffect(() => {
+        if (user) {
+            setLoading(true)
+            fetchData()
+        }
+    }, [fetchData, user])
 
     const handlePatientDelete = (patientId: string) => {
+        setLoading(true)
         deleteReq(API.deletePatient(patientId)).then(() => {
             handleInfo(`Pacientul cu CNP: ${patientId} a fost sters`)
-            fetchData(setPatients, user)
+            fetchData()
+            setLoading(false)
         }).catch(handleError)
     }
 
     return (
         <Box>
             <h1>Pacienti</h1>
+            {loading && <CircularProgress size={75} style={{position: "absolute", top: "45%", left: "50%"}}/>}
             <TableContainer component={Paper}>
                 <Table sx={{minWidth: 650}}>
                     <TableHead>

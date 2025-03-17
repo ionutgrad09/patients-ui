@@ -1,6 +1,6 @@
 import React, {FC, useEffect, useState} from 'react'
 import {DailyStatus, Patient} from "../../utils/types";
-import {Box} from "@mui/material";
+import {Box, CircularProgress, Skeleton} from "@mui/material";
 import {getReq} from "../../utils/axios";
 import {API} from "../../utils/constants";
 import dayjs from "dayjs";
@@ -22,7 +22,6 @@ const SimpleDailyStatus: FC<Props> = ({id, observerEmail}) => {
     const [patient, setPatient] = useState<Patient | null>(null)
     const [dailyStatus, setDailyStatus] = useState<DailyStatus | null>(null)
     const [loading, setLoading] = useState<boolean>(false)
-    const [loadingDailyStatus, setLoadingDailyStatus] = useState<boolean>(false)
 
 
     useEffect(() => {
@@ -38,18 +37,13 @@ const SimpleDailyStatus: FC<Props> = ({id, observerEmail}) => {
     }, [id, observerEmail])
 
     const handleDateChanged = (timestamp: number) => {
-        setLoadingDailyStatus(true)
+        setLoading(true)
         getDailyStatus(id!, timestamp, observerEmail)
             .then(response => {
                 setDailyStatus(response.data);
             }).catch(handleError).finally(() => {
-            setLoadingDailyStatus(false)
+            setLoading(false)
         })
-    }
-
-
-    if (loading || !patient || !dailyStatus) {
-        return null;
     }
 
     return (
@@ -57,22 +51,26 @@ const SimpleDailyStatus: FC<Props> = ({id, observerEmail}) => {
             <Box style={{display: "flex", justifyContent: "space-between", alignItems: "center"}}>
                 <h1>Pacient</h1>
             </Box>
-            <Box style={{display: "flex", flexDirection: "row", gap: "25px"}}>
-                <Box style={{display: "flex", flexDirection: "column", width: "50%", gap: "20px"}}>
-                    <PersonalDetails patient={patient}/>
-                    <AdvancedPersonalDetails patient={patient}/>
-                </Box>
-                <DailyStatusDetails
-                    isObserver
-                    dailyStatus={dailyStatus}
-                    readonly
-                    validationErrors={{}}
-                    handleDateChanged={handleDateChanged}
-                    updateDailyStatus={() => {
-                    }}
-                    loading={loadingDailyStatus}
-                />
-            </Box>
+            {loading && <CircularProgress size={75} style={{position: "absolute", top: "45%", left: "50%"}}/>}
+            {!patient || !dailyStatus ? <Box>
+                    <Skeleton animation="wave" height={150}/>
+                    <Skeleton animation="wave" height={150}/>
+                    <Skeleton animation="wave" height={150}/>
+                    <Skeleton animation="wave" height={150}/>
+                </Box> :
+                <Box style={{display: "flex", flexDirection: "row", gap: "25px"}}>
+                    <Box style={{display: "flex", flexDirection: "column", width: "50%", gap: "20px"}}>
+                        <PersonalDetails patient={patient}/>
+                        <AdvancedPersonalDetails patient={patient}/>
+                    </Box>
+                    <DailyStatusDetails
+                        dailyStatus={dailyStatus}
+                        readonly={true}
+                        validationErrors={{}}
+                        handleDateChanged={handleDateChanged}
+                        updateDailyStatus={() => {}}
+                    />
+                </Box>}
         </Box>
     )
 }

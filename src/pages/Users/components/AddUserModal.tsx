@@ -1,6 +1,6 @@
 import {
     Box,
-    Button,
+    Button, CircularProgress,
     Dialog, DialogActions,
     DialogTitle,
     FormControl,
@@ -12,7 +12,7 @@ import {
     TextField
 } from "@mui/material";
 import {Role, Unit} from "../../../utils/types";
-import React, {FC} from "react";
+import React, {FC, useState} from "react";
 import {ModifyUserType} from "../Users";
 
 interface Props {
@@ -23,7 +23,8 @@ interface Props {
     units: Unit[] | null,
     handleSave: () => void,
     validationErrors: { [key: string]: string },
-    isEdit: boolean
+    isEdit: boolean,
+    loading: boolean;
 }
 
 const AddUserModal: FC<Props> = ({
@@ -34,10 +35,14 @@ const AddUserModal: FC<Props> = ({
                                      units,
                                      handleSave,
                                      validationErrors,
-                                     isEdit
+                                     isEdit,
+    loading
                                  }) => {
 
+    const [isDirty, setIsDirty] = useState<boolean>(false);
+
     const handleFieldChanged = (field: string, value: any) => {
+        setIsDirty(true);
         setUserToModify({...userToModify, [field]: value});
     };
 
@@ -51,6 +56,7 @@ const AddUserModal: FC<Props> = ({
 
     return (
         <Dialog onClose={closeModal} open={open}>
+            {loading && <CircularProgress size={75} style={{position: "absolute", top: "45%", left: "50%"}}/>}
             <DialogTitle><b>Adaugare Utilizator</b></DialogTitle>
             <Box style={{
                 width: "500px",
@@ -136,7 +142,7 @@ const AddUserModal: FC<Props> = ({
                 <Button onClick={closeModal} variant="contained">
                     Cancel
                 </Button>
-                <Button onClick={handleSave} variant="contained">
+                <Button disabled={loading || !isDirty} onClick={handleSave} variant="contained">
                     Salveaza
                 </Button>
             </DialogActions>

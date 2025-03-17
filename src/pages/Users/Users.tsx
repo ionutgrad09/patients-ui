@@ -2,7 +2,7 @@ import React, {FC, useCallback, useContext, useEffect, useState} from 'react'
 import {Role, Unit, User} from "../../utils/types";
 import {
     Box, Button,
-    Chip,
+    Chip, CircularProgress,
     Paper,
     Table,
     TableBody,
@@ -39,6 +39,7 @@ const Users: FC = () => {
     const [units, setUnits] = useState<Unit[] | null>(null);
     const [validationErrors, setValidationErrors] = useState<{ [key: string]: string }>({});
     const [isEdit, setIsEdit] = useState<boolean>(false);
+    const [loading, setLoading] = useState<boolean>(false);
 
     const {user} = useContext(AuthContext);
 
@@ -49,8 +50,10 @@ const Users: FC = () => {
 
         const unitId = user.role === Role.ADMIN ? user.unitId : null
 
+        setLoading(true)
         getReq(API.getAllUsers(unitId)).then((response) => {
             setUsers(response.data)
+            setLoading(false)
         }).catch(handleError)
     }, [user])
 
@@ -92,11 +95,13 @@ const Users: FC = () => {
                 }
             }
 
+            setLoading(true)
             postReq(API.user, enhancedUser).then(() => {
                 setUserToModify(emptyUser)
                 setOpen(false)
                 getUsers();
-                handleInfo("User-ul a fost creeat")
+                setLoading(false);
+                handleInfo("User-ul a fost creeat");
             }).catch(handleError)
         }
 
@@ -138,8 +143,10 @@ const Users: FC = () => {
 
     return (
         <Box>
+            {loading && <CircularProgress size={75} style={{position: "absolute", top: "45%", left: "50%"}}/>}
             {open && (
                 <AddUserModal
+                    loading={loading}
                     isEdit={isEdit}
                     validationErrors={validationErrors}
                     handleSave={handleAddUser}

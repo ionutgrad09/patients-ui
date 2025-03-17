@@ -82,7 +82,7 @@ const PersonalInformationForm: FC<Props> = ({ user, handlePatientChange, patient
                     {user.role === Role.SUPER_ADMIN && <FormControl fullWidth style={{ flex: 1 }} error={!!validationErrors?.unitId}>
                         <InputLabel>Unitate</InputLabel>
                         <Select
-                            value={unitId !== -1 ? unitId : null}
+                            value={unitId}
                             label="Unitate"
                             onChange={(e) => handleInputChange("unitId", e.target.value)}
                             error={!!validationErrors.unitId}

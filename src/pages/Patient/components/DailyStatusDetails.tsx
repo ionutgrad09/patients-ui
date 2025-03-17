@@ -1,5 +1,5 @@
 import React, {FC, useContext} from "react";
-import {Box, Button, CircularProgress, TextField} from "@mui/material";
+import {Box, Button, Skeleton, TextField} from "@mui/material";
 import {DailyStatus} from "../../../utils/types";
 import {DatePicker} from "@mui/x-date-pickers";
 import dayjs from "dayjs";
@@ -16,9 +16,8 @@ export interface ValidationErrors {
 }
 
 interface Props {
-    dailyStatus: DailyStatus;
+    dailyStatus: DailyStatus | null;
     updateDailyStatus: (dailyStatus: DailyStatus) => void;
-    loading: boolean;
     handleDateChanged: (timestamp: number) => void;
     readonly: boolean;
     validationErrors: ValidationErrors;
@@ -26,22 +25,32 @@ interface Props {
 }
 
 const DailyStatusDetails: FC<Props> = ({
-    dailyStatus,
-    updateDailyStatus,
-    loading,
-    handleDateChanged,
-    readonly,
-    validationErrors,
-    isObserver
-}) => {
+                                           dailyStatus,
+                                           updateDailyStatus,
+                                           handleDateChanged,
+                                           readonly,
+                                           validationErrors,
+                                           isObserver
+                                       }) => {
     const {user} = useContext(AuthContext);
 
     const handleFieldChange = (field: keyof DailyStatus, value: string) => {
-        updateDailyStatus({...dailyStatus, [field]: value});
+        updateDailyStatus({...dailyStatus!, [field]: value});
     };
 
     return (
-        <Box style={{
+        !dailyStatus ? <Skeleton style={{
+            position: "relative",
+            display: "flex",
+            flexDirection: "column",
+            width: "65%",
+            backgroundColor: "white",
+            padding: "20px",
+            alignItems: "center",
+            borderRadius: "5px",
+            boxShadow: "5px 5px 10px rgba(0, 0, 0, 0.3)",
+            gap: "20px"
+        }}/> : <Box style={{
             position: "relative",
             display: "flex",
             flexDirection: "column",
@@ -53,8 +62,6 @@ const DailyStatusDetails: FC<Props> = ({
             boxShadow: "5px 5px 10px rgba(0, 0, 0, 0.3)",
             gap: "20px"
         }}>
-            {loading && <CircularProgress size={100} style={{position: "absolute", top: "300px"}}/>}
-
             <Box style={{width: "100%", display: "flex", justifyContent: "space-between"}}>
                 {dailyStatus.assignedTo || isObserver ? (
                     <h3>Preluat de: {dailyStatus.assignedTo || "-"}</h3>
@@ -78,7 +85,9 @@ const DailyStatusDetails: FC<Props> = ({
                 />
             </Box>
 
-            {!dailyStatus.assignedTo && !readonly && <p><i>Nota: Ca sa poti modifica statusul pacientului pentru aceasta zi, trebuie mai intai sa fie monitorizat de catre tine!</i></p>}
+            {!dailyStatus.assignedTo && !readonly &&
+                <p><i>Nota: Ca sa poti modifica statusul pacientului pentru aceasta zi, trebuie mai intai sa fie
+                    monitorizat de catre tine!</i></p>}
             <TextField
                 disabled={readonly || !dailyStatus.assignedTo}
                 required

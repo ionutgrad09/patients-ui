@@ -2,7 +2,7 @@ import React, {FC, useEffect, useState} from 'react'
 import {Unit} from "../../utils/types";
 import {
     Box,
-    Button,
+    Button, CircularProgress,
     Paper,
     Table,
     TableBody,
@@ -22,6 +22,7 @@ const Units: FC = () => {
     const [unitName, setUnitName] = useState<string>("");
     const [addUnitOpened, setAddUnitOpened] = useState<boolean>(false);
     const [units, setUnits] = useState<Unit[]>([]);
+    const [loading, setLoading] = useState<boolean>(false);
 
     useEffect(() => {
         getAllUnits();
@@ -29,8 +30,10 @@ const Units: FC = () => {
 
 
     const getAllUnits = () => {
+        setLoading(true)
         getReq(API.getAllUnits).then((response) => {
             setUnits(response?.data || [])
+            setLoading(false)
         })
     };
 
@@ -65,6 +68,7 @@ const Units: FC = () => {
         <Box>
             {addUnitOpened &&
                 <UnitForm
+                    loading={loading}
                     unitId={unitId}
                     closeModal={handleClose}
                     modalOpened={addUnitOpened}
@@ -75,6 +79,7 @@ const Units: FC = () => {
             }
             <Box style={{display: "flex", justifyContent: "space-between", alignItems: "center"}}>
                 <h1>Unitati</h1>
+                {loading && <CircularProgress size={75} style={{position: "absolute", top: "45%", left: "50%"}}/>}
                 <Box>
                     <Button
                         variant="contained"

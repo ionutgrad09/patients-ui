@@ -1,9 +1,9 @@
-import {Box, Divider, Tab, Tabs} from "@mui/material";
+import {Box, Divider, Skeleton, Tab, Tabs} from "@mui/material";
 import React, {FC} from "react";
 import {Patient} from "../../../utils/types";
 
 interface Props {
-    patient: Patient;
+    patient: Patient | null;
 }
 
 const AdvancedPersonalDetails: FC<Props> = ({patient}) => {
@@ -14,7 +14,14 @@ const AdvancedPersonalDetails: FC<Props> = ({patient}) => {
     };
 
     return (
-        <Box style={{
+        !patient ? <Skeleton style={{
+            position: "relative",
+            display: "flex",
+            flexDirection: "column",
+            backgroundColor: "white",
+            borderRadius: "5px",
+            boxShadow: "5px 5px 10px rgba(0, 0, 0, 0.3)"
+        }}/> : <Box style={{
             position: "relative",
             display: "flex",
             flexDirection: "column",
@@ -78,7 +85,7 @@ const AdvancedPersonalDetails: FC<Props> = ({patient}) => {
                             }} key={index}>
                                 {line}
                             </span>
-                    )): <Box>Nu exista nicio recomandare.</Box>}
+                    )) : <Box>Nu exista nicio recomandare.</Box>}
                 </Box>
             }
 
@@ -107,7 +114,7 @@ const AdvancedPersonalDetails: FC<Props> = ({patient}) => {
 
                             <Divider/>
                         </>
-                    )): <Box>Nu exista persoane de contact.</Box>}
+                    )) : <Box>Nu exista persoane de contact.</Box>}
                 </Box>
             }
         </Box>
